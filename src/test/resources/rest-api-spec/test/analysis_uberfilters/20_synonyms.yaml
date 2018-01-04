@@ -1,0 +1,30 @@
+# Integration tests for uber filter analysis components
+
+"Stopwords":
+    - do:
+        indices.create:
+            index:  synonyms_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            filter:
+                                synonyms_db_test:
+                                    type: uber_synonym
+                                    query: "select distinct synonym from synonyms"
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["synonyms_db_test"]
+    - do:
+        indices.analyze:
+            index: synonyms_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: foo dog qaz
+
+    - length: { tokens: 4 }
+    - match:  { tokens.0.token: foo }
+    - match:  { tokens.1.token: bar }
+    - match:  { tokens.2.token: cat }
+    - match:  { tokens.3.token: qaz }

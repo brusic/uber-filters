@@ -1,0 +1,3 @@
+rootProject.name = 'uber-filters'
+
+include 'test:fixtures:db-fixture'

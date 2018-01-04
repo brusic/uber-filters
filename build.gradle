@@ -1,0 +1,91 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name 'sonatype-snapshots'
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        jcenter()
+    }
+    dependencies {
+        classpath "org.elasticsearch.gradle:build-tools:${elasticsearch_version}"
+    }
+}
+
+group 'org.elasticsearch.plugin'
+version '1.0'
+
+apply plugin: 'elasticsearch.esplugin'
+apply plugin: 'idea'
+
+esplugin {
+    description 'Like the standard token filters, but uber'
+    classname 'org.elasticsearch.plugin.UberTokenFiltersPlugin'
+}
+
+test.enabled = true
+licenseHeaders.enabled = false
+dependencyLicenses.enabled = false
+thirdPartyAudit.enabled = false
+
+configurations {
+    dbFixture
+}
+
+ext {
+    databaseType = System.getProperty("dbType")
+    databaseDependency = System.getProperty("dbDependency")
+}
+
+dependencies {
+    dbFixture project(':test:fixtures:db-fixture')
+
+    // this logic really needs to move out of the dependencies block
+    def includeDatabaseTests = false
+
+    if (databaseDependency?.trim()) {
+        // expert settting. add one specific dependency - make sure you know what you are doing!
+        runtime databaseDependency
+    } else if ("postgres".equalsIgnoreCase(databaseType) || "pg".equalsIgnoreCase(databaseType)) {
+        runtime group: 'org.postgresql', name: 'postgresql', version: postgres_version
+        logger.info("load postgres: {}", postgres_version)
+    } else if ("mysql".equalsIgnoreCase(databaseType)) {
+        runtime group: 'mysql', name: 'mysql-connector-java', version: mysql_version
+        logger.info("load mysql: {}", mysql_version)
+    } else if ("derby".equalsIgnoreCase(databaseType) || "test".equalsIgnoreCase(databaseType)) {
+        // no database type defined (default when testing), use derby
+        logger.info('load derby database: {}', derby_version)
+        runtime group: 'org.apache.derby', name: 'derbyclient', version: derby_version
+        includeDatabaseTests = true
+    } else {
+        logger.warn('No database defined. Please see README for how to add database drivers manually.')
+    }
+
+    if (!includeDatabaseTests) {
+        removeDatabaseIntegrationTests()
+    }
+}
+
+private Object removeDatabaseIntegrationTests() {
+    logger.warn('remove db tests')
+    sourceSets {
+        test {
+            java {
+                exclude 'org/elasticsearch/plugin/database/*IT.java'
+            }
+        }
+    }
+}
+
+task dbFixtureTask(type: org.elasticsearch.gradle.test.AntFixture) {
+    dependsOn project.configurations.dbFixture
+    executable = new File(project.javaHome, 'bin/java')
+    env 'CLASSPATH', "${ -> project.configurations.dbFixture.asPath }"
+    args 'db.TestDatabase', baseDir
+}
+
+integTestCluster {
+    dependsOn dbFixtureTask
+    setting 'uber_filters.jdbc.driver', 'org.apache.derby.jdbc.ClientDriver'
+    setting 'uber_filters.jdbc.url', 'jdbc:derby://localhost:1527/derbyDB;create=true'
+}

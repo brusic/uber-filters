@@ -1,0 +1,77 @@
+# Integration tests for uber keyword marker filter
+
+"protect cats from being stemmed - db version":
+    - do:
+        indices.create:
+            index:  keyword_marker_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            filter:
+                                keyword_markers_db_test:
+                                    type: uber_keyword_marker
+                                    query: "select distinct keyword_marker from keyword_markers"
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["keyword_markers_db_test", "porter_stem"]
+    - do:
+        indices.analyze:
+            index: keyword_marker_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: I like cats
+
+    - length: { tokens: 3 }
+    - match:  { tokens.2.token: cats }
+
+---
+"protect cats from being stemmed - failver version":
+    - do:
+        indices.create:
+            index:  keyword_marker_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            filter:
+                                keyword_markers_db_test:
+                                    type: uber_keyword_marker
+                                    keywords: ["cats"]
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["keyword_markers_db_test", "porter_stem"]
+    - do:
+        indices.analyze:
+            index: keyword_marker_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: I like cats
+
+    - length: { tokens: 3 }
+    - match:  { tokens.2.token: cats }
+
+---
+"default: cats are stemmed":
+    - do:
+        indices.create:
+            index:  keyword_marker_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["porter_stem"]
+    - do:
+        indices.analyze:
+            index: keyword_marker_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: I like cats
+
+    - length: { tokens: 3 }
+    - match:  { tokens.2.token: cat }

@@ -1,0 +1,27 @@
+# Integration tests for uber filter analysis components
+
+"Stopwords":
+    - do:
+        indices.create:
+            index: stopwords_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            filter:
+                                stop_db_test:
+                                    type: uber_stop
+                                    query: "select distinct stopword from stopwords"
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["stop_db_test"]
+    - do:
+        indices.analyze:
+            index: stopwords_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: foo bar baz
+
+    - length: { tokens: 1 }
+    - match:  { tokens.0.token: baz }

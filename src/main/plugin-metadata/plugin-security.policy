@@ -1,0 +1,13 @@
+grant {
+    // required for database connectivity
+    permission java.lang.RuntimePermission "createClassLoader";
+    permission java.lang.RuntimePermission "getClassLoader";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+
+    // required for integration testing with derby
+    permission org.apache.derby.security.SystemPermission "engine", "usederbyinternals";
+    permission java.util.PropertyPermission "derby.*", "read";
+    permission java.io.FilePermission "${derby.system.home}", "read";
+    permission java.io.FilePermission "${derby.system.home}${/}-", "read,write,delete";
+    permission java.io.FilePermission "<<ALL FILES>>", "read,write,delete";
+};

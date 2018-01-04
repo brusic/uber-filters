@@ -1,0 +1,11 @@
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'java'
+
+dependencies {
+    compile 'org.apache.derby:derby:10.14.1.0'
+    compile group: 'org.apache.derby', name: 'derbynet', version: '10.14.1.0'
+    compile group: 'org.apache.derby', name: 'derbyclient', version: '10.14.1.0'
+}

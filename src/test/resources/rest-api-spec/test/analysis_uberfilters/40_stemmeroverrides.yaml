@@ -1,0 +1,77 @@
+# Integration tests for uber stemmer override filter
+
+"protect running from being stemmed - db version":
+    - do:
+        indices.create:
+            index:  stemmer_override_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            filter:
+                                stemmer_overrides_db_test:
+                                    type: uber_stemmer_override
+                                    query: "select distinct stemmer_override from stemmer_overrides"
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["stemmer_overrides_db_test", "porter_stem"]
+    - do:
+        indices.analyze:
+            index: stemmer_override_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: I like running
+
+    - length: { tokens: 3 }
+    - match:  { tokens.2.token: runn }
+
+---
+"protect running from being stemmed - failver version":
+    - do:
+        indices.create:
+            index:  stemmer_override_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            filter:
+                                stemmer_overrides_db_test:
+                                    type: uber_stemmer_override
+                                    rules: ["running => runn"]
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["stemmer_overrides_db_test", "porter_stem"]
+    - do:
+        indices.analyze:
+            index: stemmer_override_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: I like running
+
+    - length: { tokens: 3 }
+    - match:  { tokens.2.token: runn }
+
+---
+"default: running are stemmed":
+    - do:
+        indices.create:
+            index:  stemmer_override_test_yaml
+            body:
+                settings:
+                    index:
+                        analysis:
+                            analyzer:
+                                my_analyzer:
+                                    tokenizer:  standard
+                                    filter: ["porter_stem"]
+    - do:
+        indices.analyze:
+            index: stemmer_override_test_yaml
+            body:
+                analyzer: my_analyzer
+                text: I like running
+
+    - length: { tokens: 3 }
+    - match:  { tokens.2.token: run }
