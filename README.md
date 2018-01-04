@@ -6,7 +6,8 @@ There is only currently support for Elasticsearch 5.5. The main source is easily
 
 ## Token filters
 
-
+| Token type name | Description |
+| ---- | ---- |
 | uber_keyword_marker | Keyword Marker Token Filter (lacks supports for patterns) |
 | uber_stemmer_override | Stemmer Override Token Filter |
 | uber_stop | Stop Token Filter |
@@ -44,7 +45,8 @@ Running `gradle clean` is highly recommended before doing integration tests.
 ## Installation
 
 After the jar has been built and any additional jars manually added, you can run the elasticsearch plugin installer
-$ES_HOME/bin/elasticsearch-plugin install <path to zip file> (usually $PLUGIN_HOME/build/distributions/uber-filters-1.0.zip)
+
+    $ES_HOME/bin/elasticsearch-plugin install <path to zip file> (usually $PLUGIN_HOME/build/distributions/uber-filters-1.0.zip)
 
 You will be prompted to accept addtional security updates required for database access.
 
@@ -112,8 +114,8 @@ The standard parameters will be used if the query is not specified or causes an 
             }        
           }
         }
-  }
-}
+      }
+    }
 
 ## NOTICE
 The database needs to be up and running with the correct content whenever the token filter is created. Creation can occur when:
