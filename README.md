@@ -2,7 +2,7 @@
 
 Part of a much bigger closed-source project, this version only provides database access for the various filter rules. If there is interest, I can add refreshable rules (which will only affect newly indexed content), S3 access, and more.
 
-There is only currently support for Elasticsearch 5.5. The main source is easily ported to other versions, but the integration testing support improved with Elasticsearch 5.5.
+There is only currently support for Elasticsearch 5.5+. The main source is easily ported to other versions, but the integration testing support improved with Elasticsearch 5.5.
 
 ## Token filters
 
@@ -21,6 +21,9 @@ There is no downloadable version of the plugin for two reasons:
 1. It is difficult to release a plugin for each minor version of Elasticsearch. You can only run plugins built for the exact version of Elasticsearch.
 2. Each database requires a different Java driver, so it would be impossible to include them all.
 
+Edit the gradle.properties file for the correct Elaticsearch version
+- For Elasticsearch versions between 5.5.0 - 5.5.2, please use the 5.5 branch.
+- For Elasticsearch versions between 5.6+ or 5.5.3, please use the master/5.6 branch.
 
 You can either create a plugin jar with standard Java driver jars or without if you wish to bundle it yourself. Certain drivers, such as the one for MS SQL Server, are not available at the standard maven jar repositories.
 
